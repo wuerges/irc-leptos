@@ -1,8 +1,22 @@
 <!DOCTYPE html><html><head>
-<link rel="preload" href="/irc-leptos-38f5211775efd66f_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="/irc-leptos-38f5211775efd66f.js"></head>
+  <style>
+    .line {
+        display: flex;
+        flex-direction: row;
+    }
+    .control {
+        display: flex;
+        flex-direction: column;
+        margin: 10px;
+        min-width: 300px;
+    }
+  </style>
+<link rel="preload" href="/irc-leptos-f64b607f595fe1d_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/irc-leptos-f64b607f595fe1d.js"></head>
+  
   <body>
-<script type="module">import init from '/irc-leptos-38f5211775efd66f.js';init('/irc-leptos-38f5211775efd66f_bg.wasm');</script><script>(function () {
+
+<script type="module">import init from '/irc-leptos-f64b607f595fe1d.js';init('/irc-leptos-f64b607f595fe1d_bg.wasm');</script><script>(function () {
     var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     var url = protocol + '//' + window.location.host + '/_trunk/ws';
     var poll_interval = 5000;
