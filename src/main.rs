@@ -1,5 +1,5 @@
 use evalexpr::eval;
-use leptos::{html::Input, leptos_dom::logging::console_log, svg::view, wasm_bindgen::JsValue, *};
+use leptos::{html::Input, leptos_dom::logging::console_log, wasm_bindgen::JsValue, *};
 
 fn eval_expr(expr: &String) -> Result<f64, String> {
     if expr.trim().is_empty() {
@@ -20,12 +20,16 @@ fn Controlled(
     set_value: WriteSignal<String>,
 ) -> impl IntoView {
     let node = create_node_ref::<Input>();
-    let active = window().document().and_then(|doc| doc.active_element());
-    let is_focused = match (active, node.get()) {
-        (Some(active), Some(node)) => active == ***node,
-        _ => false,
-    };
+
     let text_value = (move || {
+        let active = window().document().and_then(|doc| doc.active_element());
+        let is_focused = match (active, node.get()) {
+            (Some(active), Some(node)) => active == ***node,
+            _ => false,
+        };
+        // let is_focused = true;
+        console_log(&format!("el: {} active: {}", label, is_focused));
+
         if is_focused {
             value.get()
         } else {
@@ -105,11 +109,56 @@ fn App() -> impl IntoView {
         (move || (yearly_10_expr.get() * calculated_amount.get()).to_string()).into_signal();
 
     let amount_external = (move || amount.get()).into_signal();
-    let daily_external = (move || daily.get()).into_signal();
-    let monthly_external = (move || monthly.get()).into_signal();
-    let yearly_external = (move || yearly.get()).into_signal();
-    let yearly_5_external = (move || yearly_5.get()).into_signal();
-    let yearly_10_external = (move || yearly_10.get()).into_signal();
+
+    let (base_daily, set_base_daily) = create_signal(0.0f64);
+    let (base_monthly, set_base_monthly) = create_signal(0.0f64);
+    let (base_yearly, set_base_yearly) = create_signal(0.0f64);
+    let (base_yearly_5, set_base_yearly_5) = create_signal(0.0f64);
+    let (base_yearly_10, set_base_yearly_10) = create_signal(0.0f64);
+
+    create_effect(move |_| {
+        let rate = (daily_expr.get() + 100.0) / 100.0;
+        set_base_monthly(rate.powf(30.0));
+        set_base_yearly(rate.powf(365.0));
+        set_base_yearly_5(rate.powf(5.0 * 365.0));
+        set_base_yearly_10(rate.powf(10.0 * 365.0));
+    });
+    create_effect(move |_| {
+        let rate = (monthly_expr.get() + 100.0) / 100.0;
+        set_base_daily(rate.powf(1.0 / 30.0));
+        set_base_yearly(rate.powf(12.0));
+        set_base_yearly_5(rate.powf(5.0 * 12.0));
+        set_base_yearly_10(rate.powf(10.0 * 12.0));
+    });
+    create_effect(move |_| {
+        let rate = (yearly_expr.get() + 100.0) / 100.0;
+        set_base_daily(rate.powf(1.0 / 365.0));
+        set_base_monthly(rate.powf(1.0 / 12.0));
+        set_base_yearly_5(rate.powf(5.0));
+        set_base_yearly_10(rate.powf(10.0));
+    });
+    create_effect(move |_| {
+        let rate = (yearly_5_expr.get() + 100.0) / 100.0;
+        set_base_daily(rate.powf(1.0 / 5.0 / 365.0));
+        set_base_monthly(rate.powf(1.0 / 5.0 / 12.0));
+        set_base_yearly(rate.powf(1.0 / 5.0));
+        set_base_yearly_10(rate.powf(2.0));
+    });
+    create_effect(move |_| {
+        let rate = (yearly_10_expr.get() + 100.0) / 100.0;
+        set_base_daily(rate.powf(1.0 / 10.0 / 365.0));
+        set_base_monthly(rate.powf(1.0 / 10.0 / 12.0));
+        set_base_yearly(rate.powf(1.0 / 10.0));
+        set_base_yearly_5(rate.powf(1.0 / 2.0));
+    });
+
+    let daily_external = (move || ((base_daily.get() - 1.0) * 100.0).to_string()).into_signal();
+    let monthly_external = (move || ((base_monthly.get() - 1.0) * 100.0).to_string()).into_signal();
+    let yearly_external = (move || ((base_yearly.get() - 1.0) * 100.0).to_string()).into_signal();
+    let yearly_5_external =
+        (move || ((base_yearly_5.get() - 1.0) * 100.0).to_string()).into_signal();
+    let yearly_10_external =
+        (move || ((base_yearly_10.get() - 1.0) * 100.0).to_string()).into_signal();
 
     view! {
         <div class="line">
