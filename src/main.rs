@@ -97,17 +97,6 @@ fn App() -> impl IntoView {
     let yearly_5_expr = (move || yearly_5.with(eval_expr).unwrap_or_default()).into_signal();
     let yearly_10_expr = (move || yearly_10.with(eval_expr).unwrap_or_default()).into_signal();
 
-    let daily_amount_external =
-        (move || (daily_expr.get() * calculated_amount.get()).to_string()).into_signal();
-    let monthly_amount_external =
-        (move || (monthly_expr.get() * calculated_amount.get()).to_string()).into_signal();
-    let yearly_amount_external =
-        (move || (yearly_expr.get() * calculated_amount.get()).to_string()).into_signal();
-    let yearly_5_amount_external =
-        (move || (yearly_5_expr.get() * calculated_amount.get()).to_string()).into_signal();
-    let yearly_10_amount_external =
-        (move || (yearly_10_expr.get() * calculated_amount.get()).to_string()).into_signal();
-
     let amount_external = (move || amount.get()).into_signal();
 
     let (base_daily, set_base_daily) = create_signal(0.0f64);
@@ -115,6 +104,17 @@ fn App() -> impl IntoView {
     let (base_yearly, set_base_yearly) = create_signal(0.0f64);
     let (base_yearly_5, set_base_yearly_5) = create_signal(0.0f64);
     let (base_yearly_10, set_base_yearly_10) = create_signal(0.0f64);
+
+    let daily_amount_external =
+        (move || (base_daily.get() * calculated_amount.get()).to_string()).into_signal();
+    let monthly_amount_external =
+        (move || (base_monthly.get() * calculated_amount.get()).to_string()).into_signal();
+    let yearly_amount_external =
+        (move || (base_yearly.get() * calculated_amount.get()).to_string()).into_signal();
+    let yearly_5_amount_external =
+        (move || (base_yearly_5.get() * calculated_amount.get()).to_string()).into_signal();
+    let yearly_10_amount_external =
+        (move || (base_yearly_10.get() * calculated_amount.get()).to_string()).into_signal();
 
     create_effect(move |_| {
         let rate = (daily_expr.get() + 100.0) / 100.0;
