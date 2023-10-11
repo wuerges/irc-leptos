@@ -70,8 +70,8 @@ fn ControlledBase(
     .into_signal();
     view! {
         <div class="control">
-            <p><label for={label}>{label}</label></p>
-            <p>
+            <p class="label"><label for={label}>{label}</label></p>
+            <p class="input">
                 <input _ref=node id={label} type="text" prop:value=text_value
                     on:input=move |ev| {
                         let value = event_target_value(&ev);
@@ -90,9 +90,9 @@ fn ControlledBase(
             <Show
                 when=move || text_value.with(eval_expr).is_err()
             >
-                <p><span class="error">ERROR</span></p>
+                <p class="error"><span>ERROR</span></p>
             </Show>
-            <p><span class="help">{description}</span></p>
+            <p class="help" ><span>{description}</span></p>
         </div>
     }
 }
@@ -207,5 +207,12 @@ fn App() -> impl IntoView {
 }
 
 fn main() {
-    leptos::mount_to_body(|| view! { <App/> })
+    leptos::mount_to_body(|| {
+        view! {
+            <div class="app">
+                <h1> Interest Rate Calculator </h1>
+                <App/>
+            </div>
+        }
+    })
 }
