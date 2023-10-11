@@ -1,5 +1,28 @@
+use std::str::FromStr;
+
 use evalexpr::eval;
 use leptos::{html::Input, wasm_bindgen::JsValue, *};
+
+#[derive(Clone, Copy)]
+struct Percent(f64);
+
+impl ToString for Percent {
+    fn to_string(&self) -> String {
+        self.0.to_string()
+    }
+}
+
+impl From<f64> for Percent {
+    fn from(value: f64) -> Self {
+        Self((value - 1.0) * 100.0)
+    }
+}
+
+impl From<Percent> for f64 {
+    fn from(value: Percent) -> Self {
+        (value.0 / 100.0) + 1.0
+    }
+}
 
 fn eval_expr(expr: &String) -> Result<f64, String> {
     if expr.trim().is_empty() {
@@ -20,11 +43,12 @@ fn is_focused(node: Option<HtmlElement<Input>>) -> bool {
 }
 
 #[component]
-fn Controlled(
+fn ControlledBase(
     label: &'static str,
     description: &'static str,
     value: Signal<f64>,
     set_value: SignalSetter<f64>,
+    percent: bool,
 ) -> impl IntoView {
     let node = create_node_ref::<Input>();
 
@@ -33,7 +57,10 @@ fn Controlled(
     let text_value = (move || {
         let input = node.get();
         let local = local.get();
-        let value = value.get().to_string();
+        let value = match percent {
+            true => Percent::from(value.get()).to_string(),
+            false => value.get().to_string(),
+        };
 
         if is_focused(input) {
             local
@@ -49,7 +76,12 @@ fn Controlled(
                 on:input=move |ev| {
                     let value = event_target_value(&ev);
                     set_local(event_target_value(&ev));
-                    set_value(eval_expr(&value).unwrap_or_default());
+
+                    let global_value = eval_expr(&value).unwrap_or_default();
+                    set_value(match percent {
+                        true => Percent(global_value).into(),
+                        false => global_value,
+                    });
                 }
             /></p>
             <Show
@@ -59,6 +91,30 @@ fn Controlled(
             </Show>
             <p><span class="help">{description}</span></p>
         </div>
+    }
+}
+
+#[component]
+fn Controlled(
+    label: &'static str,
+    description: &'static str,
+    value: Signal<f64>,
+    set_value: SignalSetter<f64>,
+) -> impl IntoView {
+    view! {
+        <ControlledBase label description value set_value percent=false />
+    }
+}
+
+#[component]
+fn ControlledPercent(
+    label: &'static str,
+    description: &'static str,
+    value: Signal<f64>,
+    set_value: SignalSetter<f64>,
+) -> impl IntoView {
+    view! {
+        <ControlledBase label description value set_value percent=true />
     }
 }
 
@@ -81,10 +137,39 @@ where
     }
 }
 
+fn create_local_storage<T>(key: &'static str, default: T) -> (Signal<T>, SignalSetter<T>)
+where
+    T: FromStr + ToString + Clone,
+    <T as FromStr>::Err: std::fmt::Debug,
+{
+    let local_storage = window().local_storage().unwrap().unwrap();
+    let storage_value = local_storage.get_item(key).unwrap();
+
+    let initial_value = match storage_value {
+        Some(v) => v.parse().unwrap(),
+        None => default,
+    };
+
+    let (signal, set_signal) = create_signal::<T>(initial_value);
+
+    let storage_writer = (move |new_value: T| {
+        set_signal(new_value.clone());
+        local_storage
+            .set_item(key, new_value.clone().to_string().as_str())
+            .unwrap();
+    })
+    .into_signal_setter();
+
+    (signal.into(), storage_writer)
+}
+
 #[component]
 fn App() -> impl IntoView {
-    let (amount, set_amount) = create_signal::<f64>(0.0);
-    let (yearly, set_yearly) = create_signal::<f64>(0.0);
+    let (amount, set_amount) = create_local_storage::<f64>("amount", 100.0);
+    let (yearly, set_yearly) = create_local_storage::<f64>("yearly", 1.07);
+
+    // let (amount, set_amount) = create_signal::<f64>(100.0);
+    // let (yearly, set_yearly) = create_signal::<f64>(1.07);
 
     let daily = (move || yearly.get().powf(1.0 / 365.0)).into_signal();
     let set_daily = (move |y: f64| set_yearly.set(y.powf(365.0))).into_signal_setter();
@@ -98,22 +183,25 @@ fn App() -> impl IntoView {
     let yearly_10 = (move || yearly.get().powf(10.0)).into_signal();
     let set_yearly_10 = (move |y: f64| set_yearly.set(y.powf(1.0 / 10.0))).into_signal_setter();
 
-    let daily_amount = (move || daily.get() * amount.get()).into_signal();
-    let set_daily_amount = (move |a: f64| set_amount.set(a / daily.get())).into_signal_setter();
+    let daily_amount = (move || (daily.get() - 1.0) * amount.get()).into_signal();
+    let set_daily_amount =
+        (move |a: f64| set_amount.set(a / (daily.get() - 1.0))).into_signal_setter();
 
-    let monthly_amount = (move || monthly.get() * amount.get()).into_signal();
-    let set_monthly_amount = (move |a: f64| set_amount.set(a / monthly.get())).into_signal_setter();
+    let monthly_amount = (move || (monthly.get() - 1.0) * amount.get()).into_signal();
+    let set_monthly_amount =
+        (move |a: f64| set_amount.set(a / (monthly.get() - 1.0))).into_signal_setter();
 
-    let yearly_amount = (move || yearly.get() * amount.get()).into_signal();
-    let set_yearly_amount = (move |a| set_amount.set(a / yearly.get())).into_signal_setter();
+    let yearly_amount = (move || (yearly.get() - 1.0) * amount.get()).into_signal();
+    let set_yearly_amount =
+        (move |a| set_amount.set(a / (yearly.get() - 1.0))).into_signal_setter();
 
-    let yearly_5_amount = (move || yearly_5.get() * amount.get()).into_signal();
+    let yearly_5_amount = (move || (yearly_5.get() - 1.0) * amount.get()).into_signal();
     let set_yearly_5_amount =
-        (move |a: f64| set_amount.set(a / yearly_5.get())).into_signal_setter();
+        (move |a: f64| set_amount.set(a / (yearly_5.get() - 1.0))).into_signal_setter();
 
-    let yearly_10_amount = (move || yearly_10.get() * amount.get()).into_signal();
+    let yearly_10_amount = (move || (yearly_10.get() - 1.0) * amount.get()).into_signal();
     let set_yearly_10_amount =
-        (move |a: f64| set_amount.set(a / yearly_10.get())).into_signal_setter();
+        (move |a: f64| set_amount.set(a / (yearly_10.get() - 1.0))).into_signal_setter();
 
     view! {
         <div class="line">
@@ -121,23 +209,23 @@ fn App() -> impl IntoView {
             <Uncontrolled label="Calculated amount" description="Calculate value of the amount" value=amount.into()/>
         </div>
         <div class="line">
-            <Controlled label="Daily" description="Daily interest rate in %" value=daily set_value=set_daily />
+            <ControlledPercent label="Daily" description="Daily interest rate in %" value=daily set_value=set_daily />
             <Controlled label="Daily amount" description="Amount earned in a day." value=daily_amount set_value=set_daily_amount />
         </div>
         <div class="line">
-            <Controlled label="Monthly" description="Monthly interest rate in %" value=monthly set_value=set_monthly />
+            <ControlledPercent label="Monthly" description="Monthly interest rate in %" value=monthly set_value=set_monthly />
             <Controlled label="Monthly amount" description="Amount earned in a month." value=monthly_amount set_value=set_monthly_amount />
         </div>
         <div class="line">
-            <Controlled label="Yearly" description="Yearly interest rate in %" value=yearly.into() set_value=set_yearly.into() />
+            <ControlledPercent label="Yearly" description="Yearly interest rate in %" value=yearly.into() set_value=set_yearly.into() />
             <Controlled label="Yearly amount" description="Amount earned in a year." value=yearly_amount set_value=set_yearly_amount />
         </div>
         <div class="line">
-            <Controlled label="5 years" description="5 years interest rate in %" value=yearly_5 set_value=set_yearly_5 />
+            <ControlledPercent label="5 years" description="5 years interest rate in %" value=yearly_5 set_value=set_yearly_5 />
             <Controlled label="5 years amount" description="Amount earned in 5 years." value=yearly_5_amount set_value=set_yearly_5_amount />
         </div>
         <div class="line">
-            <Controlled label="10 years" description="10 years interest rate in %" value=yearly_10 set_value=set_yearly_10 />
+            <ControlledPercent label="10 years" description="10 years interest rate in %" value=yearly_10 set_value=set_yearly_10 />
             <Controlled label="10 years amount" description="Amount earned in 10 years." value=yearly_10_amount set_value=set_yearly_10_amount />
         </div>
     }
