@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 leptos = { version = "0.5.1", features = ["csr", "nightly"] }
+web-sys = { features = ["Storage"] }
 evalexpr = "11.1.0"
