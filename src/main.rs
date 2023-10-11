@@ -1,5 +1,10 @@
 use evalexpr::eval;
-use leptos::{html::Input, leptos_dom::logging::console_log, wasm_bindgen::JsValue, *};
+use leptos::{
+    html::{ElementDescriptor, Input},
+    leptos_dom::logging::console_log,
+    wasm_bindgen::JsValue,
+    *,
+};
 
 fn eval_expr(expr: &String) -> Result<f64, String> {
     if expr.trim().is_empty() {
@@ -8,6 +13,14 @@ fn eval_expr(expr: &String) -> Result<f64, String> {
     match eval(expr).and_then(|x| x.as_number()) {
         Ok(result) => Ok(result),
         Err(err) => Err(format!("{:?}", err)),
+    }
+}
+
+fn is_focused(node: Option<HtmlElement<Input>>) -> bool {
+    let active = window().document().and_then(|doc| doc.active_element());
+    match (active, node) {
+        (Some(active), Some(node)) => active == ***node,
+        _ => false,
     }
 }
 
@@ -23,15 +36,11 @@ fn Controlled(
     let (local, set_local) = create_signal::<String>("".to_string());
 
     let text_value = (move || {
-        let active = window().document().and_then(|doc| doc.active_element());
-        let is_focused = match (active, node.get()) {
-            (Some(active), Some(node)) => active == ***node,
-            _ => false,
-        };
-
+        let input = node.get();
         let local = local.get();
         let value = value.get().to_string();
-        if is_focused {
+
+        if is_focused(input) {
             local
         } else {
             value
