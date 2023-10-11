@@ -71,18 +71,22 @@ fn ControlledBase(
     view! {
         <div class="control">
             <p><label for={label}>{label}</label></p>
-            <p><input _ref=node id={label} type="text" prop:value=text_value
-                on:input=move |ev| {
-                    let value = event_target_value(&ev);
-                    set_local(event_target_value(&ev));
+            <p>
+                <input _ref=node id={label} type="text" prop:value=text_value
+                    on:input=move |ev| {
+                        let value = event_target_value(&ev);
+                        set_local(event_target_value(&ev));
 
-                    let global_value = eval_expr(&value).unwrap_or_default();
-                    set_value(match percent {
-                        true => Percent(global_value).into(),
-                        false => global_value,
-                    });
-                }
-            /></p>
+                        let global_value = eval_expr(&value).unwrap_or_default();
+                        set_value(match percent {
+                            true => Percent(global_value).into(),
+                            false => global_value,
+                        });
+                    }
+                />
+                " "
+                {percent.then_some(view! {<span>%</span>})}
+            </p>
             <Show
                 when=move || text_value.with(eval_expr).is_err()
             >
