@@ -1,6 +1,5 @@
-use std::str::FromStr;
-
 use evalexpr::eval;
+use irc_leptos::local_storage::create_local_storage;
 use leptos::{html::Input, wasm_bindgen::JsValue, *};
 
 #[derive(Clone, Copy)]
@@ -137,39 +136,11 @@ where
     }
 }
 
-fn create_local_storage<T>(key: &'static str, default: T) -> (Signal<T>, SignalSetter<T>)
-where
-    T: FromStr + ToString + Clone,
-    <T as FromStr>::Err: std::fmt::Debug,
-{
-    let local_storage = window().local_storage().unwrap().unwrap();
-    let storage_value = local_storage.get_item(key).unwrap();
-
-    let initial_value = match storage_value {
-        Some(v) => v.parse().unwrap(),
-        None => default,
-    };
-
-    let (signal, set_signal) = create_signal::<T>(initial_value);
-
-    let storage_writer = (move |new_value: T| {
-        set_signal(new_value.clone());
-        local_storage
-            .set_item(key, new_value.clone().to_string().as_str())
-            .unwrap();
-    })
-    .into_signal_setter();
-
-    (signal.into(), storage_writer)
-}
-
 #[component]
 fn App() -> impl IntoView {
-    let (amount, set_amount) = create_local_storage::<f64>("amount", 100.0);
-    let (yearly, set_yearly) = create_local_storage::<f64>("yearly", 1.07);
-
-    // let (amount, set_amount) = create_signal::<f64>(100.0);
-    // let (yearly, set_yearly) = create_signal::<f64>(1.07);
+    let window = window();
+    let (amount, set_amount) = create_local_storage::<f64>(&window, "amount", 100.0);
+    let (yearly, set_yearly) = create_local_storage::<f64>(&window, "yearly", 1.07);
 
     let daily = (move || yearly.get().powf(1.0 / 365.0)).into_signal();
     let set_daily = (move |y: f64| set_yearly.set(y.powf(365.0))).into_signal_setter();
