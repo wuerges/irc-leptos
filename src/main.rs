@@ -1,10 +1,5 @@
 use evalexpr::eval;
-use leptos::{
-    html::{ElementDescriptor, Input},
-    leptos_dom::logging::console_log,
-    wasm_bindgen::JsValue,
-    *,
-};
+use leptos::{html::Input, wasm_bindgen::JsValue, *};
 
 fn eval_expr(expr: &String) -> Result<f64, String> {
     if expr.trim().is_empty() {
