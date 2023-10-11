@@ -90,7 +90,7 @@ fn ControlledBase(
             <Show
                 when=move || text_value.with(eval_expr).is_err()
             >
-                <p class="error"><span>ERROR</span></p>
+                <p class="error"><span>"⚠" invalid expression</span></p>
             </Show>
             <p class="help" ><span>{description}</span></p>
         </div>

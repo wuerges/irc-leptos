@@ -563,7 +563,7 @@ async function __wbg_init(input) {
     if (wasm !== undefined) return wasm;
 
     if (typeof input === 'undefined') {
-        input = new URL('irc-leptos-56fa22eebabf47f9_bg.wasm', import.meta.url);
+        input = new URL('irc-leptos-440d2a9c2838d8c8_bg.wasm', import.meta.url);
     }
     const imports = __wbg_get_imports();
 
