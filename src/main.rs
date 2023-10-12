@@ -69,10 +69,10 @@ fn ControlledBase(
     })
     .into_signal();
     view! {
-        <div class="control">
+        <div class="field">
             <p class="label"><label for={label}>{label}</label></p>
-            <p class="input">
-                <input _ref=node id={label} type="text" prop:value=text_value
+            <p class="control">
+                <input class="input" _ref=node id={label} type="text" prop:value=text_value
                     on:input=move |ev| {
                         let value = event_target_value(&ev);
                         set_local(event_target_value(&ev));
@@ -132,9 +132,9 @@ where
     JsValue: From<T>,
 {
     view! {
-        <div class="control">
-            <p><label for={label}>{label}</label></p>
-            <p><input id={label} type="text" prop:value=value disabled="true"/></p>
+        <div class="field">
+            <p class="label"><label for={label}>{label}</label></p>
+            <p class="control"><input class="input" id={label} type="text" prop:value=value disabled="true"/></p>
             <p><span class="help">{description}</span></p>
         </div>
     }
@@ -179,29 +179,53 @@ fn App() -> impl IntoView {
         (move |a: f64| set_amount.set(a / (yearly_10.get() - 1.0))).into_signal_setter();
 
     view! {
-        <div class="line">
-            <Controlled label="Amount" description="Amount to multiply by the interest" value=amount.into() set_value=set_amount.into() />
-            <Uncontrolled label="Calculated amount" description="Calculate value of the amount" value=amount.into()/>
+        <div class="columns is-mobile">
+            <div class="column">
+                <Controlled label="Amount" description="Amount to multiply by the interest" value=amount.into() set_value=set_amount.into() />
+            </div>
+            <div class="column">
+                <Uncontrolled label="Calculated amount" description="Calculate value of the amount" value=amount.into()/>
+            </div>
         </div>
-        <div class="line">
-            <ControlledPercent label="Daily" description="Daily interest rate in %" value=daily set_value=set_daily />
-            <Controlled label="Daily amount" description="Amount earned in a day." value=daily_amount set_value=set_daily_amount />
+        <div class="columns is-mobile">
+            <div class="column">
+                <ControlledPercent label="Daily" description="Daily interest rate in %" value=daily set_value=set_daily />
+            </div>
+            <div class="column">
+                <Controlled label="Daily amount" description="Amount earned in a day." value=daily_amount set_value=set_daily_amount />
+            </div>
         </div>
-        <div class="line">
-            <ControlledPercent label="Monthly" description="Monthly interest rate in %" value=monthly set_value=set_monthly />
-            <Controlled label="Monthly amount" description="Amount earned in a month." value=monthly_amount set_value=set_monthly_amount />
+        <div class="columns is-mobile">
+            <div class="column">
+                <ControlledPercent label="Monthly" description="Monthly interest rate in %" value=monthly set_value=set_monthly />
+            </div>
+            <div class="column">
+                <Controlled label="Monthly amount" description="Amount earned in a month." value=monthly_amount set_value=set_monthly_amount />
+            </div>
         </div>
-        <div class="line">
-            <ControlledPercent label="Yearly" description="Yearly interest rate in %" value=yearly.into() set_value=set_yearly.into() />
-            <Controlled label="Yearly amount" description="Amount earned in a year." value=yearly_amount set_value=set_yearly_amount />
+        <div class="columns is-mobile">
+            <div class="column">
+                <ControlledPercent label="Yearly" description="Yearly interest rate in %" value=yearly.into() set_value=set_yearly.into() />
+            </div>
+            <div class="column">
+                <Controlled label="Yearly amount" description="Amount earned in a year." value=yearly_amount set_value=set_yearly_amount />
+            </div>
         </div>
-        <div class="line">
-            <ControlledPercent label="5 years" description="5 years interest rate in %" value=yearly_5 set_value=set_yearly_5 />
-            <Controlled label="5 years amount" description="Amount earned in 5 years." value=yearly_5_amount set_value=set_yearly_5_amount />
+        <div class="columns is-mobile">
+            <div class="column">
+                <ControlledPercent label="5 years" description="5 years interest rate in %" value=yearly_5 set_value=set_yearly_5 />
+            </div>
+            <div class="column">
+                <Controlled label="5 years amount" description="Amount earned in 5 years." value=yearly_5_amount set_value=set_yearly_5_amount />
+            </div>
         </div>
-        <div class="line">
-            <ControlledPercent label="10 years" description="10 years interest rate in %" value=yearly_10 set_value=set_yearly_10 />
-            <Controlled label="10 years amount" description="Amount earned in 10 years." value=yearly_10_amount set_value=set_yearly_10_amount />
+        <div class="columns is-mobile">
+            <div class="column">
+                <ControlledPercent label="10 years" description="10 years interest rate in %" value=yearly_10 set_value=set_yearly_10 />
+            </div>
+            <div class="column">
+                <Controlled label="10 years amount" description="Amount earned in 10 years." value=yearly_10_amount set_value=set_yearly_10_amount />
+            </div>
         </div>
     }
 }
@@ -209,10 +233,14 @@ fn App() -> impl IntoView {
 fn main() {
     leptos::mount_to_body(|| {
         view! {
-            <div class="app">
-                <h1> Interest Rate Calculator </h1>
-                <App/>
-            </div>
+            <section class="section">
+                <div class="container">
+                    <h1 class="title">
+                        Interest Rate Calculator
+                    </h1>
+                    <App/>
+                </div>
+            </section>
         }
     })
 }

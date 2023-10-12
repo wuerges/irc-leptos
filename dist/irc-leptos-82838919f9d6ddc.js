@@ -521,8 +521,8 @@ function __wbg_get_imports() {
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };
-    imports.wbg.__wbindgen_closure_wrapper1768 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 243, __wbg_adapter_20);
+    imports.wbg.__wbindgen_closure_wrapper1787 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 246, __wbg_adapter_20);
         return addHeapObject(ret);
     };
 
@@ -563,7 +563,7 @@ async function __wbg_init(input) {
     if (wasm !== undefined) return wasm;
 
     if (typeof input === 'undefined') {
-        input = new URL('irc-leptos-440d2a9c2838d8c8_bg.wasm', import.meta.url);
+        input = new URL('irc-leptos-82838919f9d6ddc_bg.wasm', import.meta.url);
     }
     const imports = __wbg_get_imports();
 
