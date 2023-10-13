@@ -7,5 +7,7 @@ edition = "2021"
 
 [dependencies]
 leptos = { version = "0.5.1", features = ["csr", "nightly"] }
-web-sys = { features = ["Storage"] }
+web-sys = { features = ["Storage", "AbortController", "AbortSignal"] }
 evalexpr = "11.1.0"
+serde = { version = "1", features = ["derive"] }
+gloo-net = { version = "0.2", features = ["http"] }

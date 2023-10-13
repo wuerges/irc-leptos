@@ -1,5 +1,8 @@
 use evalexpr::eval;
-use irc_leptos::local_storage::create_local_storage;
+use irc_leptos::{
+    fetch_rates::{fetch_rates, Rates},
+    local_storage::create_local_storage,
+};
 use leptos::{html::Input, wasm_bindgen::JsValue, *};
 
 #[derive(Clone, Copy)]
@@ -23,11 +26,11 @@ impl From<Percent> for f64 {
     }
 }
 
-fn eval_expr(expr: &String) -> Result<f64, String> {
+fn eval_expr(rates: &Rates, expr: &String) -> Result<f64, String> {
     if expr.trim().is_empty() {
         return Ok(0.0);
     }
-    match eval(expr).and_then(|x| x.as_number()) {
+    match eval(&rates.replace(expr)).and_then(|x| x.as_number()) {
         Ok(result) => Ok(result),
         Err(err) => Err(format!("{:?}", err)),
     }
@@ -43,6 +46,7 @@ fn is_focused(node: Option<HtmlElement<Input>>) -> bool {
 
 #[component]
 fn ControlledBase(
+    rates: Signal<Rates>,
     label: &'static str,
     description: &'static str,
     value: Signal<f64>,
@@ -77,7 +81,7 @@ fn ControlledBase(
                         let value = event_target_value(&ev);
                         set_local(event_target_value(&ev));
 
-                        let global_value = eval_expr(&value).unwrap_or_default();
+                        let global_value = eval_expr(&rates.get(),&value).unwrap_or_default();
                         set_value(match percent {
                             true => Percent(global_value).into(),
                             false => global_value,
@@ -88,7 +92,7 @@ fn ControlledBase(
                 {percent.then_some(view! {<span>%</span>})}
             </p>
             <Show
-                when=move || text_value.with(eval_expr).is_err()
+                when=move || text_value.with(|x| eval_expr(&rates.get(), x)).is_err()
             >
                 <p class="error"><span>"⚠" invalid expression</span></p>
             </Show>
@@ -99,25 +103,27 @@ fn ControlledBase(
 
 #[component]
 fn Controlled(
+    rates: Signal<Rates>,
     label: &'static str,
     description: &'static str,
     value: Signal<f64>,
     set_value: SignalSetter<f64>,
 ) -> impl IntoView {
     view! {
-        <ControlledBase label description value set_value percent=false />
+        <ControlledBase rates label description value set_value percent=false />
     }
 }
 
 #[component]
 fn ControlledPercent(
+    rates: Signal<Rates>,
     label: &'static str,
     description: &'static str,
     value: Signal<f64>,
     set_value: SignalSetter<f64>,
 ) -> impl IntoView {
     view! {
-        <ControlledBase label description value set_value percent=true />
+        <ControlledBase rates label description value set_value percent=true />
     }
 }
 
@@ -142,6 +148,18 @@ where
 
 #[component]
 fn App() -> impl IntoView {
+    let rates_resource = leptos::create_resource(|| (), |_| fetch_rates());
+
+    let rates = (move || {
+        rates_resource
+            .get()
+            .flatten()
+            .unwrap_or_default()
+            .data
+            .rates
+    })
+    .into_signal();
+
     let window = window();
     let (amount, set_amount) = create_local_storage::<f64>(&window, "amount", 100.0);
     let (yearly, set_yearly) = create_local_storage::<f64>(&window, "yearly", 1.07);
@@ -181,7 +199,7 @@ fn App() -> impl IntoView {
     view! {
         <div class="columns is-mobile">
             <div class="column">
-                <Controlled label="Amount" description="Amount to multiply by the interest" value=amount.into() set_value=set_amount.into() />
+                <Controlled rates label="Amount" description="Amount to multiply by the interest" value=amount.into() set_value=set_amount.into() />
             </div>
             <div class="column">
                 <Uncontrolled label="Calculated amount" description="Calculate value of the amount" value=amount.into()/>
@@ -189,42 +207,42 @@ fn App() -> impl IntoView {
         </div>
         <div class="columns is-mobile">
             <div class="column">
-                <ControlledPercent label="Daily" description="Daily interest rate in %" value=daily set_value=set_daily />
+                <ControlledPercent rates label="Daily" description="Daily interest rate in %" value=daily set_value=set_daily />
             </div>
             <div class="column">
-                <Controlled label="Daily amount" description="Amount earned in a day." value=daily_amount set_value=set_daily_amount />
-            </div>
-        </div>
-        <div class="columns is-mobile">
-            <div class="column">
-                <ControlledPercent label="Monthly" description="Monthly interest rate in %" value=monthly set_value=set_monthly />
-            </div>
-            <div class="column">
-                <Controlled label="Monthly amount" description="Amount earned in a month." value=monthly_amount set_value=set_monthly_amount />
+                <Controlled rates label="Daily amount" description="Amount earned in a day." value=daily_amount set_value=set_daily_amount />
             </div>
         </div>
         <div class="columns is-mobile">
             <div class="column">
-                <ControlledPercent label="Yearly" description="Yearly interest rate in %" value=yearly.into() set_value=set_yearly.into() />
+                <ControlledPercent rates label="Monthly" description="Monthly interest rate in %" value=monthly set_value=set_monthly />
             </div>
             <div class="column">
-                <Controlled label="Yearly amount" description="Amount earned in a year." value=yearly_amount set_value=set_yearly_amount />
-            </div>
-        </div>
-        <div class="columns is-mobile">
-            <div class="column">
-                <ControlledPercent label="5 years" description="5 years interest rate in %" value=yearly_5 set_value=set_yearly_5 />
-            </div>
-            <div class="column">
-                <Controlled label="5 years amount" description="Amount earned in 5 years." value=yearly_5_amount set_value=set_yearly_5_amount />
+                <Controlled rates label="Monthly amount" description="Amount earned in a month." value=monthly_amount set_value=set_monthly_amount />
             </div>
         </div>
         <div class="columns is-mobile">
             <div class="column">
-                <ControlledPercent label="10 years" description="10 years interest rate in %" value=yearly_10 set_value=set_yearly_10 />
+                <ControlledPercent rates label="Yearly" description="Yearly interest rate in %" value=yearly.into() set_value=set_yearly.into() />
             </div>
             <div class="column">
-                <Controlled label="10 years amount" description="Amount earned in 10 years." value=yearly_10_amount set_value=set_yearly_10_amount />
+                <Controlled rates label="Yearly amount" description="Amount earned in a year." value=yearly_amount set_value=set_yearly_amount />
+            </div>
+        </div>
+        <div class="columns is-mobile">
+            <div class="column">
+                <ControlledPercent rates label="5 years" description="5 years interest rate in %" value=yearly_5 set_value=set_yearly_5 />
+            </div>
+            <div class="column">
+                <Controlled rates label="5 years amount" description="Amount earned in 5 years." value=yearly_5_amount set_value=set_yearly_5_amount />
+            </div>
+        </div>
+        <div class="columns is-mobile">
+            <div class="column">
+                <ControlledPercent rates label="10 years" description="10 years interest rate in %" value=yearly_10 set_value=set_yearly_10 />
+            </div>
+            <div class="column">
+                <Controlled rates label="10 years amount" description="Amount earned in 10 years." value=yearly_10_amount set_value=set_yearly_10_amount />
             </div>
         </div>
     }

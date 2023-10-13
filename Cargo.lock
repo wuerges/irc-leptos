@@ -652,7 +652,9 @@ name = "irc-leptos"
 version = "0.1.0"
 dependencies = [
  "evalexpr",
+ "gloo-net",
  "leptos",
+ "serde",
  "web-sys",
 ]
 
