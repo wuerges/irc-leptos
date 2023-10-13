@@ -675,15 +675,15 @@ function __wbg_get_imports() {
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };
-    imports.wbg.__wbindgen_closure_wrapper2885 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper2948 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 357, __wbg_adapter_24);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper2887 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper2950 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 359, __wbg_adapter_27);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper8204 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper8267 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 457, __wbg_adapter_30);
         return addHeapObject(ret);
     };
@@ -725,7 +725,7 @@ async function __wbg_init(input) {
     if (wasm !== undefined) return wasm;
 
     if (typeof input === 'undefined') {
-        input = new URL('irc-leptos-3e3e74e5ba72d10c_bg.wasm', import.meta.url);
+        input = new URL('irc-leptos-311833434d25d6f4_bg.wasm', import.meta.url);
     }
     const imports = __wbg_get_imports();
 

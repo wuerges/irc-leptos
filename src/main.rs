@@ -26,11 +26,11 @@ impl From<Percent> for f64 {
     }
 }
 
-fn eval_expr(rates: &Rates, expr: &String) -> Result<f64, String> {
+fn eval_expr(expr: &String) -> Result<f64, String> {
     if expr.trim().is_empty() {
         return Ok(0.0);
     }
-    match eval(&rates.replace(expr)).and_then(|x| x.as_number()) {
+    match eval(expr).and_then(|x| x.as_number()) {
         Ok(result) => Ok(result),
         Err(err) => Err(format!("{:?}", err)),
     }
@@ -81,7 +81,7 @@ fn ControlledBase(
                         let value = event_target_value(&ev);
                         set_local(event_target_value(&ev));
 
-                        let global_value = eval_expr(&rates.get(),&value).unwrap_or_default();
+                        let global_value = eval_expr(&rates.with(|r| r.replace(&value))).unwrap_or_default();
                         set_value(match percent {
                             true => Percent(global_value).into(),
                             false => global_value,
@@ -92,9 +92,9 @@ fn ControlledBase(
                 {percent.then_some(view! {<span>%</span>})}
             </p>
             <Show
-                when=move || text_value.with(|x| eval_expr(&rates.get(), x)).is_err()
+                when=move || text_value.with(|x| eval_expr(&rates.with(|r| r.replace(x)))).is_err()
             >
-                <p class="error"><span>"⚠" invalid expression</span></p>
+                <p class="error"><span>"⚠" invalid expression: {text_value.with(|x| rates.with(|r| r.replace(x)))}</span></p>
             </Show>
             <p class="help" ><span>{description}</span></p>
         </div>

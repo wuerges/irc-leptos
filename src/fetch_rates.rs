@@ -20,12 +20,9 @@ pub struct Rates(HashMap<String, String>);
 
 impl Rates {
     pub fn replace(&self, expr: &str) -> String {
-        self.0
-            .iter()
-            .filter(|(k, _)| k.as_str() != "00")
-            .fold(expr.to_string(), |acc, (key, el)| {
-                acc.replace(key, &format!("({el})"))
-            })
+        self.0.iter().fold(expr.to_string(), |acc, (key, el)| {
+            acc.replace(&format!("${key}"), &format!("(1/{el})"))
+        })
     }
 }
 
